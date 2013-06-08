@@ -36,9 +36,9 @@ public class PropertyProcessor {
         Properties props = new Properties();
 
         try {
-            props.load(getClass().getResourceAsStream("/ckmanager.properties"));
+            props.load(getClass().getResourceAsStream("/ckmanager.example.properties"));
         } catch (IOException e) {
-            LOG.severe("An error occurred while trying to read the config file from the class path. Is there a config file called 'ckmanager.properties' on your classpath?");
+            LOG.severe("An error occurred while trying to read the config file from the class path. Is there a config file called 'ckmanager.example.properties' on your classpath?");
             e.printStackTrace();
         }
 
@@ -74,23 +74,23 @@ public class PropertyProcessor {
 
     private void checkUploadDirWebPath(String uploadDirWebPath) throws CkFileManagerPropertyException {
         if(uploadDirWebPath == null || uploadDirWebPath.trim().length() == 0){
-            throw new CkFileManagerPropertyException("The property 'image.baseuploaddir.webpath' is not found or doesn't have a value. Please add it to ckmanager.properties");
+            throw new CkFileManagerPropertyException("The property 'image.baseuploaddir.webpath' is not found or doesn't have a value. Please add it to ckmanager.example.properties");
         }
 
         if(!uploadDirWebPath.startsWith("/") || !uploadDirWebPath.endsWith("/")){
-            throw new CkFileManagerPropertyException("The property 'image.baseuploaddir.webpath' must have a leading and trailing slash. PLease fix this in ckmanager.properties");
+            throw new CkFileManagerPropertyException("The property 'image.baseuploaddir.webpath' must have a leading and trailing slash. PLease fix this in ckmanager.example.properties");
         }
     }
 
     private void checkUploadFieldName(String uploadFieldName) throws CkFileManagerPropertyException {
         if(uploadFieldName == null || uploadFieldName.trim().length() == 0){
-            throw new CkFileManagerPropertyException("The property 'image.uploadfieldname' is not found or doesn't have a value. Please add it to ckmanager.properties");
+            throw new CkFileManagerPropertyException("The property 'image.uploadfieldname' is not found or doesn't have a value. Please add it to ckmanager.example.properties");
         }
     }
 
     private File checkUploadDirProperty(String uploadDir) throws CkFileManagerPropertyException {
         if (uploadDir == null || uploadDir.length() == 0) {
-            throw new CkFileManagerPropertyException("The property 'articleimage.baseuploaddir' is not found or doesn't have a value. Please add it to ckmanager.properties");
+            throw new CkFileManagerPropertyException("The property 'articleimage.baseuploaddir' is not found or doesn't have a value. Please add it to ckmanager.example.properties");
         }
 
         File dir = new File(uploadDir);
