@@ -2,6 +2,7 @@ package nl.codebasesoftware.ckfilemanager;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -16,12 +17,12 @@ public class PropertyProcessor {
     private static PropertyProcessor instance;
     private CkProperties properties = new CkProperties();
 
-    private PropertyProcessor(){
+    private PropertyProcessor() {
         properties = processProperties();
     }
 
-    public static PropertyProcessor getInstance(){
-        if(instance == null){
+    public static PropertyProcessor getInstance() {
+        if (instance == null) {
             instance = new PropertyProcessor();
         }
         return instance;
@@ -36,7 +37,14 @@ public class PropertyProcessor {
         Properties props = new Properties();
 
         try {
-            props.load(getClass().getResourceAsStream("/ckmanager.example.properties"));
+            Thread thread = Thread.currentThread();
+            InputStream stream1 = thread.getContextClassLoader().getResourceAsStream("/ckmanager.properties");
+            //InputStream stream2 = thread.getContextClassLoader().getResourceAsStream("ckmanager.properties");
+            //InputStream stream3 = getClass().getResourceAsStream("/ckmanager.properties");
+            //InputStream stream4 = getClass().getResourceAsStream("ckmanager.properties");
+            //InputStream stream5 = getClass().getClassLoader().getResourceAsStream("ckmanager.properties");
+            //ResourceBundle ckmanager = ResourceBundle.getBundle("ckmanager");
+            props.load(stream1);
         } catch (IOException e) {
             LOG.severe("An error occurred while trying to read the config file from the class path. Is there a config file called 'ckmanager.example.properties' on your classpath?");
             e.printStackTrace();
@@ -47,7 +55,7 @@ public class PropertyProcessor {
         String maxWidth = props.getProperty("image.maxwidth");
         String fileNamingStrategyClass = props.getProperty("image.filenamingstrategyclass");
         String uploadFieldName = props.getProperty("image.uploadfieldname");
-        String uploadDirWebPath = props.getProperty("image.baseuploaddir.webpath");
+        String uploadDirWebPath = props.getProperty("image.webpath");
 
         try {
             File dir = checkUploadDirProperty(uploadDir);
@@ -57,8 +65,8 @@ public class PropertyProcessor {
             checkUploadFieldName(uploadFieldName);
             checkUploadDirWebPath(uploadDirWebPath);
 
-            properties.setUploadBaseDir(dir);
-            properties.setUploadDirWebPath(uploadDirWebPath);
+            properties.setUploadDir(dir);
+            properties.setWebPath(uploadDirWebPath);
             properties.setMaxHeight(maxHeightInt);
             properties.setMaxWidth(maxWidthInt);
             properties.setStrategy(strategy);
@@ -73,17 +81,17 @@ public class PropertyProcessor {
     }
 
     private void checkUploadDirWebPath(String uploadDirWebPath) throws CkFileManagerPropertyException {
-        if(uploadDirWebPath == null || uploadDirWebPath.trim().length() == 0){
+        if (uploadDirWebPath == null || uploadDirWebPath.trim().length() == 0) {
             throw new CkFileManagerPropertyException("The property 'image.baseuploaddir.webpath' is not found or doesn't have a value. Please add it to ckmanager.example.properties");
         }
 
-        if(!uploadDirWebPath.startsWith("/") || !uploadDirWebPath.endsWith("/")){
+        if (!uploadDirWebPath.startsWith("/") || !uploadDirWebPath.endsWith("/")) {
             throw new CkFileManagerPropertyException("The property 'image.baseuploaddir.webpath' must have a leading and trailing slash. PLease fix this in ckmanager.example.properties");
         }
     }
 
     private void checkUploadFieldName(String uploadFieldName) throws CkFileManagerPropertyException {
-        if(uploadFieldName == null || uploadFieldName.trim().length() == 0){
+        if (uploadFieldName == null || uploadFieldName.trim().length() == 0) {
             throw new CkFileManagerPropertyException("The property 'image.uploadfieldname' is not found or doesn't have a value. Please add it to ckmanager.example.properties");
         }
     }
@@ -121,7 +129,7 @@ public class PropertyProcessor {
     }
 
     private FilePathStrategy checkFileNamingStrategy(String strategyClass) throws CkFileManagerPropertyException {
-        if(strategyClass == null){
+        if (strategyClass == null) {
             return null;
         }
 
@@ -132,7 +140,7 @@ public class PropertyProcessor {
 
             boolean b = FilePathStrategy.class.isAssignableFrom(strategy);
 
-            if(!b){
+            if (!b) {
                 throw new CkFileManagerPropertyException(String.format("Class %s must implement interface FilePathStrategy", strategyClass));
             }
 

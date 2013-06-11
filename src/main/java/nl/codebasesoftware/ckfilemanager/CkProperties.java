@@ -9,12 +9,12 @@ import java.io.File;
  */
 public class CkProperties {
 
-    private File uploadBaseDir;
+    private File uploadDir;
     private int maxHeight;
     private int maxWidth;
     private FilePathStrategy strategy;
     private String uploadFieldName;
-    private String uploadDirWebPath;
+    private String webPath;
 
 
     public int getMaxHeight() {
@@ -41,12 +41,12 @@ public class CkProperties {
         this.strategy = strategy;
     }
 
-    public File getUploadBaseDir() {
-        return uploadBaseDir;
+    public File getUploadDir() {
+        return uploadDir;
     }
 
-    public void setUploadBaseDir(File uploadBaseDir) {
-        this.uploadBaseDir = uploadBaseDir;
+    public void setUploadDir(File uploadDir) {
+        this.uploadDir = uploadDir;
     }
 
     public String getUploadFieldName() {
@@ -57,11 +57,11 @@ public class CkProperties {
         this.uploadFieldName = uploadFieldName;
     }
 
-    public String getUploadDirWebPath() {
-        return uploadDirWebPath;
+    public String getWebPath() {
+        return webPath;
     }
 
-    public void setUploadDirWebPath(String uploadDirWebPath) {
-        this.uploadDirWebPath = uploadDirWebPath;
+    public void setWebPath(String webPath) {
+        this.webPath = webPath;
     }
 }

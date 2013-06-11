@@ -21,7 +21,7 @@ import java.util.List;
  * Date: 5-6-13
  * Time: 14:42
  */
-public class CkUploadServlet extends HttpServlet {
+public class UploadServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

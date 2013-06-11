@@ -15,9 +15,9 @@ public class DefaultFilePathStrategy implements FilePathStrategy {
     public FilePaths createPaths(FileItem item, CkProperties properties) {
 
         String name = item.getName();
-        String dirPath = properties.getUploadBaseDir().getPath();
+        String dirPath = properties.getUploadDir().getPath();
         String uniqueFileName = getUniqueName(dirPath, name, null);
-        String url = getUrl(properties.getUploadDirWebPath(), uniqueFileName);
+        String url = getUrl(properties.getWebPath(), uniqueFileName);
 
         return new FilePaths(String.format("%s/%s", dirPath, uniqueFileName), url);
     }

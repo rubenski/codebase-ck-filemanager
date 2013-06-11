@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="codebaseckfilemanager:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <root id="archive" name="cbckmanager.war">
+      <element id="artifact" artifact-name="codebaseckfilemanager:war exploded" />
+    </root>
+  </artifact>
+</component>
