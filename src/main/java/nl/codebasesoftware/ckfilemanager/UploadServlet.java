@@ -23,37 +23,68 @@ import java.util.List;
  */
 public class UploadServlet extends HttpServlet {
 
+
+    private static final int THUMBNAIL_MAX_LENGTH = 250;
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+        String error = "";
+
+
+        String contextPath= getServletContext().getContextPath();
 
         String funcNum = req.getParameter("CKEditorFuncNum");
 
         resp.setContentType("text/html");
         PrintWriter writer = resp.getWriter();
 
-        PropertyProcessor instance = PropertyProcessor.getInstance();
+        PropertyProcessor instance = PropertyProcessor.getInstance(contextPath);
         CkProperties properties = instance.getProperties();
         FileItem fileItem = fetchFileFromRequest(req, properties.getUploadFieldName());
 
+        String contentType = fileItem.getContentType();
+        String output = "";
 
-        BufferedImage image = processImage(properties, fileItem.get());
+        if (contentType.contains("image")) {
+            byte[] bytes = fileItem.get();
+            Dimensions currentDimensions = ImageUtil.getCurrentDimensions(bytes);
 
-        FilePathStrategy strategy = properties.getStrategy();
-        FilePaths paths = strategy.createPaths(fileItem, properties);
+            BufferedImage displayImage = createDisplayImage(properties, bytes, currentDimensions);
+            BufferedImage thumbnailImage = createThumbnailImage(properties, bytes, currentDimensions);
 
-        ImageUtil.saveImage(image, paths.getAbsoluteServerPath());
+            FilePathStrategy strategy = properties.getStrategy();
+            FilePaths paths = strategy.createPaths(fileItem.getName(), properties);
 
-        writer.write(String.format("<script type='text/javascript'>window.parent.CKEDITOR.tools.callFunction(%s, '%s', '%s');</script>",
-                funcNum, paths.getRelativeUrl(), "File upload failed"));
+            ImageUtil.saveImage(displayImage, paths.getDisplayImageServerPath());
+            ImageUtil.saveImage(thumbnailImage, paths.getThumbnailServerpath());
 
+            output = String.format("<script type='text/javascript'>window.parent.CKEDITOR.tools.callFunction(%s, '%s', '%s');</script>",
+                    funcNum, paths.getDisplayImageRelativeUrl(), error);
+        }  else {
+            output = String.format("<script type='text/javascript'>window.parent.CKEDITOR.tools.callFunction(%s, '%s', '%s');</script>",
+                    funcNum, "", properties.getNoImageError());
+        }
 
+        writer.write(output);
     }
 
-    private BufferedImage processImage(CkProperties properties, byte[] imageByteArray) {
-        Dimensions currentDimensions = ImageUtil.getCurrentDimensions(imageByteArray);
+
+    private BufferedImage createDisplayImage(CkProperties properties, byte[] imageByteArray, Dimensions currentDimensions) {
         BufferedImage image;
         if (currentDimensions.width > properties.getMaxWidth() || currentDimensions.height > properties.getMaxHeight()) {
             image = ImageUtil.scale(imageByteArray, properties.getMaxWidth(), properties.getMaxHeight());
+        } else {
+            image = ImageUtil.getBufferedImage(imageByteArray);
+        }
+        return image;
+    }
+
+
+    private BufferedImage createThumbnailImage(CkProperties properties, byte[] imageByteArray, Dimensions currentDimensions) {
+        BufferedImage image;
+        if (currentDimensions.width > THUMBNAIL_MAX_LENGTH || currentDimensions.height > THUMBNAIL_MAX_LENGTH) {
+            image = ImageUtil.scale(imageByteArray, THUMBNAIL_MAX_LENGTH, THUMBNAIL_MAX_LENGTH);
         } else {
             image = ImageUtil.getBufferedImage(imageByteArray);
         }
@@ -78,7 +109,8 @@ public class UploadServlet extends HttpServlet {
         }
 
         try {
-            throw new CkFileManagerPropertyException(String.format("Field name %s was not found in the request. Are you sure this is the correct image field name?", imageFieldName));
+            throw new CkFileManagerPropertyException(String.format("Field name %s was not found in the request. " +
+                    "Are you sure this is the correct image field name?", imageFieldName));
         } catch (CkFileManagerPropertyException e) {
             e.printStackTrace();
         }

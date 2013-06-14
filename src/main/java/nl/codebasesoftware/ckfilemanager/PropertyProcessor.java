@@ -13,17 +13,30 @@ import java.util.logging.Logger;
  */
 public class PropertyProcessor {
 
+    private static final String UPLOAD_DIR = "cbck.uploaddir";
+    private static final String IMG_MAX_HEIGHT = "image.maxheight";
+    private static final String IMG_MAX_WIDTH = "image.maxwidth";
+    private static final String FILENAMING_STRATEGY_CLASS = "cbck.filenamingstrategyclass";
+    private static final String UPLOADFORM_FIELDNAME = "uploadform.uploadfieldname";
+    private static final String UPLOAD_PATH = "cbck.uploadpath";
+    private static final String FILESERVE_PATH= "cbck.fileservepath";
+    private static final String FILEBROWSER_PATH = "cbck.filebrowserpath";
+    private static final String LANG_NO_IMAGE = "lang.isnoimage.error";
+    private static final String LANG_FILEBROWSER_INSERT = "lang.filebrowser.insert";
+    private static final String LANG_FILEBROWSER_REMOVE = "lang.filebrowser.remove";
+
+
     private static final Logger LOG = Logger.getLogger("propertyprocessor");
     private static PropertyProcessor instance;
     private CkProperties properties = new CkProperties();
 
-    private PropertyProcessor() {
-        properties = processProperties();
+    private PropertyProcessor(String contextPath) {
+        properties = processProperties(contextPath);
     }
 
-    public static PropertyProcessor getInstance() {
+    public static PropertyProcessor getInstance(String contextPath) {
         if (instance == null) {
-            instance = new PropertyProcessor();
+            instance = new PropertyProcessor(contextPath);
         }
         return instance;
     }
@@ -32,45 +45,60 @@ public class PropertyProcessor {
         return properties;
     }
 
-    private CkProperties processProperties() {
+    private CkProperties processProperties(String contextPath) {
 
         Properties props = new Properties();
 
         try {
             Thread thread = Thread.currentThread();
             InputStream stream1 = thread.getContextClassLoader().getResourceAsStream("/ckmanager.properties");
-            //InputStream stream2 = thread.getContextClassLoader().getResourceAsStream("ckmanager.properties");
-            //InputStream stream3 = getClass().getResourceAsStream("/ckmanager.properties");
-            //InputStream stream4 = getClass().getResourceAsStream("ckmanager.properties");
-            //InputStream stream5 = getClass().getClassLoader().getResourceAsStream("ckmanager.properties");
-            //ResourceBundle ckmanager = ResourceBundle.getBundle("ckmanager");
             props.load(stream1);
         } catch (IOException e) {
             LOG.severe("An error occurred while trying to read the config file from the class path. Is there a config file called 'ckmanager.example.properties' on your classpath?");
             e.printStackTrace();
         }
 
-        String uploadDir = props.getProperty("image.baseuploaddir");
-        String maxHeight = props.getProperty("image.maxheight");
-        String maxWidth = props.getProperty("image.maxwidth");
-        String fileNamingStrategyClass = props.getProperty("image.filenamingstrategyclass");
-        String uploadFieldName = props.getProperty("image.uploadfieldname");
-        String uploadDirWebPath = props.getProperty("image.webpath");
+
+
+        String uploadDir = props.getProperty(UPLOAD_DIR);
+        String maxHeight = props.getProperty(IMG_MAX_HEIGHT);
+        String maxWidth = props.getProperty(IMG_MAX_HEIGHT);
+        String fileNamingStrategyClass = props.getProperty(FILENAMING_STRATEGY_CLASS);
+        String uploadFieldName = props.getProperty(UPLOADFORM_FIELDNAME);
+        String uploadPath = props.getProperty(UPLOAD_PATH);
+        String fileServePath = props.getProperty(FILESERVE_PATH);
+        String fileBrowserPath = props.getProperty(FILEBROWSER_PATH);
+        String noImageError = props.getProperty(LANG_NO_IMAGE);
+        String langInsert = props.getProperty(LANG_FILEBROWSER_INSERT);
+        String langRemove = props.getProperty(LANG_FILEBROWSER_REMOVE);
 
         try {
-            File dir = checkUploadDirProperty(uploadDir);
-            int maxWidthInt = checkDimensionProperty(maxWidth, "image.maxwidth");
-            int maxHeightInt = checkDimensionProperty(maxHeight, "image.maxheight");
+            File uploadDirectory = createDir(uploadDir);
+            File thumbsDirectory = createDir(String.format("%s/thumbs", uploadDir));
+            int maxWidthInt = checkDimensionProperty(maxWidth, IMG_MAX_WIDTH);
+            int maxHeightInt = checkDimensionProperty(maxHeight, IMG_MAX_HEIGHT);
             FilePathStrategy strategy = checkFileNamingStrategy(fileNamingStrategyClass);
-            checkUploadFieldName(uploadFieldName);
-            checkUploadDirWebPath(uploadDirWebPath);
+            checkProperty(uploadFieldName, UPLOADFORM_FIELDNAME);
+            checkProperty(uploadPath, UPLOAD_PATH);
+            checkProperty(fileServePath, FILESERVE_PATH);
+            checkProperty(fileBrowserPath, FILEBROWSER_PATH);
+            checkProperty(noImageError, LANG_NO_IMAGE);
+            checkProperty(langInsert, LANG_FILEBROWSER_INSERT);
+            checkProperty(langInsert, LANG_FILEBROWSER_REMOVE);
 
-            properties.setUploadDir(dir);
-            properties.setWebPath(uploadDirWebPath);
+            properties.setUploadServerDir(uploadDirectory);
+            properties.setContextPath(contextPath);
             properties.setMaxHeight(maxHeightInt);
             properties.setMaxWidth(maxWidthInt);
             properties.setStrategy(strategy);
             properties.setUploadFieldName(uploadFieldName);
+            properties.setFileBrowserPath(fileBrowserPath);
+            properties.setFileServePath(fileServePath);
+            properties.setUploadPath(uploadPath);
+            properties.setNoImageError(noImageError);
+            properties.setLangInsert(langInsert);
+            properties.setLangRemove(langRemove);
+            properties.setThumbsServerDir(thumbsDirectory);
 
 
         } catch (CkFileManagerPropertyException e) {
@@ -80,33 +108,36 @@ public class PropertyProcessor {
         return properties;
     }
 
-    private void checkUploadDirWebPath(String uploadDirWebPath) throws CkFileManagerPropertyException {
-        if (uploadDirWebPath == null || uploadDirWebPath.trim().length() == 0) {
-            throw new CkFileManagerPropertyException("The property 'image.baseuploaddir.webpath' is not found or doesn't have a value. Please add it to ckmanager.example.properties");
-        }
-
-        if (!uploadDirWebPath.startsWith("/") || !uploadDirWebPath.endsWith("/")) {
-            throw new CkFileManagerPropertyException("The property 'image.baseuploaddir.webpath' must have a leading and trailing slash. PLease fix this in ckmanager.example.properties");
+    private void checkProperty(String path, String propertyName) throws CkFileManagerPropertyException {
+        if (path == null || path.trim().length() == 0) {
+            throw new CkFileManagerPropertyException(String.format("The property '%s' doesn't exist or has no value", propertyName));
         }
     }
 
-    private void checkUploadFieldName(String uploadFieldName) throws CkFileManagerPropertyException {
-        if (uploadFieldName == null || uploadFieldName.trim().length() == 0) {
-            throw new CkFileManagerPropertyException("The property 'image.uploadfieldname' is not found or doesn't have a value. Please add it to ckmanager.example.properties");
-        }
-    }
+    private File createDir(String dirPath) throws CkFileManagerPropertyException {
 
-    private File checkUploadDirProperty(String uploadDir) throws CkFileManagerPropertyException {
-        if (uploadDir == null || uploadDir.length() == 0) {
-            throw new CkFileManagerPropertyException("The property 'articleimage.baseuploaddir' is not found or doesn't have a value. Please add it to ckmanager.example.properties");
+        File directory = new File(dirPath);
+
+        if(!directory.exists()){
+            boolean created;
+            try{
+                created = directory.mkdir();
+            }catch(SecurityException e){
+                throw new CkFileManagerPropertyException(String.format("Directory '%s' doesn't exist and can't be created", directory.getPath()));
+            }
+
+            if(!created){
+                throw new CkFileManagerPropertyException(String.format("Directory '%s' doesn't exist and can't be created", directory.getPath()));
+            }
         }
 
-        File dir = new File(uploadDir);
-        if (!dir.isDirectory() || !dir.canWrite()) {
-            throw new CkFileManagerPropertyException(String.format("The directory %s doesn't exist, is not a directory or the directory is not writable. Please make sure the directory exists and is writable", dir));
+        if (!directory.canWrite()) {
+            throw new CkFileManagerPropertyException(String.format("Please review ckmanager.properties. " +
+                    "The directory %s doesn't exist, is not a directory or the directory is not writable. " +
+                    "Please make sure the directory exists and is writable", dirPath));
         }
 
-        return dir;
+        return directory;
     }
 
     private int checkDimensionProperty(String dimensionProperty, String name) throws CkFileManagerPropertyException {
@@ -117,11 +148,13 @@ public class PropertyProcessor {
             try {
                 dimension = Integer.parseInt(dimensionProperty);
             } catch (NumberFormatException e) {
-                throw new CkFileManagerPropertyException(String.format("The property %s is invalid. Please use an integer value", name));
+                throw new CkFileManagerPropertyException(String.format("The property %s is invalid. Please use an " +
+                        "integer value", name));
             }
 
             if (dimension <= 0) {
-                throw new CkFileManagerPropertyException(String.format("The property %s is invalid. Please use a positive integer value", name));
+                throw new CkFileManagerPropertyException(String.format("The property %s is invalid. Please use a " +
+                        "positive integer value", name));
             }
         }
 
@@ -141,7 +174,8 @@ public class PropertyProcessor {
             boolean b = FilePathStrategy.class.isAssignableFrom(strategy);
 
             if (!b) {
-                throw new CkFileManagerPropertyException(String.format("Class %s must implement interface FilePathStrategy", strategyClass));
+                throw new CkFileManagerPropertyException(String.format("Error in property cbck.filenamingstrategyclass. " +
+                        "Class %s must implement interface FilePathStrategy", strategyClass));
             }
 
             strategyInstance = (FilePathStrategy) strategy.newInstance();

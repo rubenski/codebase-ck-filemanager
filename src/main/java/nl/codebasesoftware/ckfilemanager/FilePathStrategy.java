@@ -1,7 +1,5 @@
 package nl.codebasesoftware.ckfilemanager;
 
-import org.apache.commons.fileupload.FileItem;
-
 /**
  * User: rvanloen
  * Date: 6-6-13
@@ -9,6 +7,6 @@ import org.apache.commons.fileupload.FileItem;
  */
 public interface FilePathStrategy {
 
-    FilePaths createPaths(FileItem item, CkProperties properties);
+    FilePaths createPaths(String fileName, CkProperties properties);
 
 }

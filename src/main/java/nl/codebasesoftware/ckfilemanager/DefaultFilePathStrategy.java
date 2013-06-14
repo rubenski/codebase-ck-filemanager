@@ -11,17 +11,41 @@ import java.io.File;
  */
 public class DefaultFilePathStrategy implements FilePathStrategy {
 
+    private String fileName;
 
-    public FilePaths createPaths(FileItem item, CkProperties properties) {
+    public FilePaths createPaths(String fileName, CkProperties properties) {
 
-        String name = item.getName();
-        String dirPath = properties.getUploadDir().getPath();
-        String uniqueFileName = getUniqueName(dirPath, name, null);
-        String url = getUrl(properties.getWebPath(), uniqueFileName);
+        this.fileName = fileName;
 
-        return new FilePaths(String.format("%s/%s", dirPath, uniqueFileName), url);
+        String dirPath = properties.getUploadServerDir().getPath();
+
+
+        String uniqueFileName = getUniqueName(dirPath, fileName, null);
+
+        String displayImageUrl = getDisplayImageUrl(properties.getContextPath(), properties.getFileServePath(), uniqueFileName);
+        String displayImageServerPath = getDisplayImageServerPath(properties.getUploadServerDir(), uniqueFileName);
+        String thumbnailImageUrl = getThumnailImageUrl(properties.getContextPath(), properties.getFileServePath(), uniqueFileName);
+        String thumbnailImageServerPath = getThumbnailImageServerPath(properties.getThumbsServerDir(), uniqueFileName);
+
+
+        return new FilePaths(displayImageServerPath, displayImageUrl, thumbnailImageServerPath, thumbnailImageUrl);
     }
 
+    private String getThumbnailImageServerPath(File thumbsDir, String uniqueFileName) {
+        return String.format("%s/thumb_%s", thumbsDir, uniqueFileName);
+    }
+
+    private String getThumnailImageUrl(String webpath, String fileServePath, String uniqueFileName) {
+        return String.format("%s/%s/thumbs/thumb_%s", webpath, fileServePath, uniqueFileName);
+    }
+
+    private String getDisplayImageServerPath(File uploadDir, String uniqueFileName) {
+        return String.format("%s/%s", uploadDir, uniqueFileName);
+    }
+
+    private String getDisplayImageUrl(String webPath, String fileServePath, String uniqueFileName){
+        return String.format("%s/%s/%s", webPath, fileServePath, uniqueFileName);
+    }
 
     private String getUniqueName(String dirPath, String name, Integer prefix) {
 
@@ -42,10 +66,6 @@ public class DefaultFilePathStrategy implements FilePathStrategy {
         }
 
         return uniqueName;
-    }
-
-    private String getUrl(String webPath, String uniqueFileName){
-        return String.format("%s%s", webPath, uniqueFileName);
     }
 
 }

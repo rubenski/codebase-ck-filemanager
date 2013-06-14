@@ -9,12 +9,19 @@ import java.io.File;
  */
 public class CkProperties {
 
-    private File uploadDir;
+    private File uploadServerDir;
+    private File thumbsServerDir;
     private int maxHeight;
     private int maxWidth;
     private FilePathStrategy strategy;
     private String uploadFieldName;
-    private String webPath;
+    private String uploadPath;
+    private String fileServePath;
+    private String fileBrowserPath;
+    private String noImageError;
+    private String langInsert;
+    private String langRemove;
+    private String contextPath;
 
 
     public int getMaxHeight() {
@@ -41,12 +48,12 @@ public class CkProperties {
         this.strategy = strategy;
     }
 
-    public File getUploadDir() {
-        return uploadDir;
+    public File getUploadServerDir() {
+        return uploadServerDir;
     }
 
-    public void setUploadDir(File uploadDir) {
-        this.uploadDir = uploadDir;
+    public void setUploadServerDir(File uploadServerDir) {
+        this.uploadServerDir = uploadServerDir;
     }
 
     public String getUploadFieldName() {
@@ -57,11 +64,67 @@ public class CkProperties {
         this.uploadFieldName = uploadFieldName;
     }
 
-    public String getWebPath() {
-        return webPath;
+    public String getUploadPath() {
+        return uploadPath;
     }
 
-    public void setWebPath(String webPath) {
-        this.webPath = webPath;
+    public void setUploadPath(String uploadPath) {
+        this.uploadPath = uploadPath;
+    }
+
+    public String getFileServePath() {
+        return fileServePath;
+    }
+
+    public void setFileServePath(String fileServePath) {
+        this.fileServePath = fileServePath;
+    }
+
+    public String getFileBrowserPath() {
+        return fileBrowserPath;
+    }
+
+    public void setFileBrowserPath(String fileBrowserPath) {
+        this.fileBrowserPath = fileBrowserPath;
+    }
+
+    public String getNoImageError() {
+        return noImageError;
+    }
+
+    public void setNoImageError(String noImageError) {
+        this.noImageError = noImageError;
+    }
+
+    public String getLangInsert() {
+        return langInsert;
+    }
+
+    public void setLangInsert(String langInsert) {
+        this.langInsert = langInsert;
+    }
+
+    public String getLangRemove() {
+        return langRemove;
+    }
+
+    public void setLangRemove(String langRemove) {
+        this.langRemove = langRemove;
+    }
+
+    public File getThumbsServerDir() {
+        return thumbsServerDir;
+    }
+
+    public void setThumbsServerDir(File thumbsServerDir) {
+        this.thumbsServerDir = thumbsServerDir;
+    }
+
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    public void setContextPath(String contextPath) {
+        this.contextPath = contextPath;
     }
 }
